@@ -1,9 +1,9 @@
 const request = require('request');
-const myIP = `https://api.ipify.org/?format=json`;
+
 
 const fetchMyIP = function(callback) {
-  request(myIP, (error, response, body)=>{
-    const data  = JSON.parse(body);
+  request(`https://api.ipify.org/?format=json`, (error, response, body)=>{
+    
     if (error) {
       return callback(error, null);
       
@@ -12,8 +12,29 @@ const fetchMyIP = function(callback) {
       const msg = `Staus Code ${response.statusCode} when fetching IP. Response ${body}`;
       callback(Error(msg), null);
     }
-    callback(null ,data.ip);
+    const ip  = JSON.parse(body).ip;
+    callback(null, ip);
   });
 };
 
-module.exports = { fetchMyIP };
+const fetchCoordsByIP = (ip, callback) => {
+  const location = `https://freegeoip.app/json/${ip}`;
+  request(location, (error,response, body)=>{
+    if (error) {
+      return callback(error, null);
+    }
+    if (response.statusCode !== 200) {
+      const msg = `Staus Code ${response.statusCode} when fetching Coordinates for IP. Response ${body}`;
+      callback(Error(msg), null);
+    }
+
+    // const lat = JSON.parse(body).latitude;
+    // const long = JSON.parse(body).longitude;
+    const { latitude, longitude } = JSON.parse(body);
+    // callback(null, `Longitude: ${long}`);
+    // callback(null, `Latitude: ${lat}`);
+    callback(null, { latitude, longitude });
+  });
+
+};
+module.exports = { fetchMyIP, fetchCoordsByIP };
